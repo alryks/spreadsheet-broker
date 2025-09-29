@@ -3,10 +3,20 @@ from typing import Dict, List
 import os
 
 from fastapi import FastAPI, HTTPException, Query, Header, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 
 app = FastAPI(title="Spreadsheet Broker")
+
+# CORS: allow browser clients to call with Authorization header
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # replace with your domains for stricter policy
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 
 class AddPayload(BaseModel):
