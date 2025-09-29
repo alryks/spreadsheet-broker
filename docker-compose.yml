@@ -1,12 +1,28 @@
+networks:
+  exc:
+    external: true
+
 services:
   api:
     build: .
     container_name: spreadsheet-broker-api
+    networks:
+      - exc
     env_file:
       - .env
-    ports:
-      - "8000:8000"
+    expose:
+      - 8000
     environment:
       - UVICORN_WORKERS=2
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-2}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.spreadsheet-broker.loadbalancer.server.port=8000
+      - traefik.http.routers.spreadsheet-broker-http.entrypoints=web
+      - traefik.http.routers.spreadsheet-broker-http.rule=Host(`spreadsheet.sklyar.app`)
+      - traefik.http.routers.spreadsheet-broker-http.middlewares=to-websecure@file
+      - traefik.http.routers.spreadsheet-broker-https.service=spreadsheet-broker
+      - traefik.http.routers.spreadsheet-broker-https.entrypoints=websecure
+      - traefik.http.routers.spreadsheet-broker-https.rule=Host(`spreadsheet.sklyar.app`)
+      - traefik.http.routers.spreadsheet-broker-https.tls.certresolver=letsencrypt
 
